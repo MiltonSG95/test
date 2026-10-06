@@ -20,12 +20,16 @@
     <h1>Our Bookable Services</h1>
     <div id="wix-services-list">Loading services from your Wix backend...</div>
 
-    <!-- Usamos scripts de módulos nativos integrados en un bundle limpio -->
-    <script type="module">
-      import { createClient, OAuthStrategy } from 'https://esm.sh';
-      import { services } from 'https://esm.sh';
+    <!-- Cargamos los scripts unificados para navegador vía JSDelivr en formato UMD -->
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
 
-      // Inicializamos el cliente usando tu Client ID real de tu proyecto
+    <script>
+      // Extraemos las funciones una vez que los archivos cargaron correctamente en la ventana global
+      const { createClient, OAuthStrategy } = window.wixSdk;
+      const { services } = window.wixBookings;
+
+      // Inicializamos el cliente usando tu Client ID de Wix Studio
       const wixClient = createClient({
         modules: { services },
         auth: OAuthStrategy({ clientId: 'a77aaff4-a8b2-499a-9b71-fe8ae575d70d' })
@@ -33,7 +37,7 @@
 
       async function displayServices() {
         try {
-          // Hacemos la consulta a tus servicios de Wix Bookings
+          // Consultamos los servicios de Wix Bookings
           const response = await wixClient.services.queryServices().find();
           const listContainer = document.getElementById('wix-services-list');
           
@@ -42,7 +46,7 @@
             return;
           }
 
-          // Inyectamos los servicios en tu diseño HTML
+          // Renderizamos las tarjetas de servicios
           listContainer.innerHTML = response.items.map(service => `
             <div class="service-card">
               <h3 class="service-title">${service.name}</h3>
@@ -56,8 +60,8 @@
         }
       }
 
-      // Ejecutar la función cuando el DOM esté listo
-      document.addEventListener('DOMContentLoaded', displayServices);
+      // Ejecutar la función cuando el navegador termine de estructurar el sitio
+      window.onload = displayServices;
     </script>
 </body>
 </html>
