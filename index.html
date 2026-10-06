@@ -22,8 +22,9 @@
 
     <!-- The Wix Headless SDK Engine -->
     <script type="module">
-      import { createClient, OAuthStrategy } from 'https://esm.sh';
-      import { services } from 'https://esm.sh';
+import { createClient, OAuthStrategy } from 'https://unpkg.com';
+import { services } from 'https://unpkg.com';
+
 
       // Connect to your specific Wix Studio Headless project
       const wixClient = createClient({
