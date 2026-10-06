@@ -22,40 +22,48 @@
 
     <!-- The Wix Headless SDK Engine -->
     <script type="module">
-import { createClient, OAuthStrategy } from 'https://unpkg.com';
-import { services } from 'https://unpkg.com';
+<!-- Cambiamos a scripts normales cargados desde un CDN compatible con navegadores -->
+<script src="https://jsdelivr.net"></script>
+<script src="https://jsdelivr.net"></script>
 
+<script>
+  // Una vez cargados los scripts, accedemos a ellos a través de los objetos globales en window
+  const { createClient, OAuthStrategy } = window.wixSdk;
+  const { services } = window.wixBookings;
 
-      // Connect to your specific Wix Studio Headless project
-      const wixClient = createClient({
-        modules: { services },
-        auth: OAuthStrategy({ clientId: 'a77aaff4-a8b2-499a-9b71-fe8ae575d70d' })
-      });
+  // Inicializar tu puente headless
+  const wixClient = createClient({
+    modules: { services },
+    auth: OAuthStrategy({ clientId: 'a77aaff4-a8b2-499a-9b71-fe8ae575d70d' })
+  });
 
-      async function displayServices() {
-        try {
-          const response = await wixClient.services.queryServices().find();
-          const listContainer = document.getElementById('wix-services-list');
-          
-          if(response.items.length === 0) {
-            listContainer.innerHTML = "<p style='text-align:center;'>No services found in your dashboard.</p>";
-            return;
-          }
-
-          listContainer.innerHTML = response.items.map(service => `
-            <div class="service-card">
-              <h3 class="service-title">${service.name}</h3>
-              <p class="service-desc">${service.description || 'No description provided for this service.'}</p>
-              <button class="book-btn">Book Appointment</button>
-            </div>
-          `).join('');
-        } catch (err) {
-          console.error(err);
-          document.getElementById('wix-services-list').innerHTML = "<p style='color:red;'>Error connecting to Wix.</p>";
-        }
+  async function displayServices() {
+    try {
+      const response = await wixClient.services.queryServices().find();
+      const listContainer = document.getElementById('wix-services-list');
+      
+      if (!response.items || response.items.length === 0) {
+        listContainer.innerHTML = "<p style='text-align:center;'>No se encontraron servicios en tu panel de control de Wix.</p>";
+        return;
       }
 
-      displayServices();
+      listContainer.innerHTML = response.items.map(service => `
+        <div class="service-card">
+          <h3 class="service-title">${service.name}</h3>
+          <p class="service-desc">${service.description || 'No hay descripción disponible para este servicio.'}</p>
+          <button class="book-btn">Reservar Cita</button>
+        </div>
+      `).join('');
+    } catch (err) {
+      console.error("Error al conectar con Wix:", err);
+      document.getElementById('wix-services-list').innerHTML = "<p style='color:red; text-align:center;'>Error al conectar con el backend de Wix. Revisa la consola.</p>";
+    }
+  }
+
+  // Ejecutar la función cuando cargue la página
+  window.onload = displayServices;
+</script>
+
     </script>
 </body>
 </html>
