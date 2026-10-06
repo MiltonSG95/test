@@ -20,50 +20,46 @@
     <h1>Our Bookable Services</h1>
     <div id="wix-services-list">Loading services from your Wix backend...</div>
 
-    <!-- The Wix Headless SDK Engine -->
-    <script type="module">
-<!-- Cambiamos a scripts normales cargados desde un CDN compatible con navegadores -->
-<script src="https://jsdelivr.net"></script>
-<script src="https://jsdelivr.net"></script>
+    <!-- 1. Cargamos el bundle oficial de la API de Wix para navegadores de forma limpia -->
+    <script src="https://unpkg.com"></script>
 
-<script>
-  // Una vez cargados los scripts, accedemos a ellos a través de los objetos globales en window
-  const { createClient, OAuthStrategy } = window.wixSdk;
-  const { services } = window.wixBookings;
+    <script>
+      // 2. Extraemos las herramientas necesarias directamente del objeto global 'wixApi'
+      const { createClient, OAuthStrategy, bookings } = window.wixApi;
 
-  // Inicializar tu puente headless
-  const wixClient = createClient({
-    modules: { services },
-    auth: OAuthStrategy({ clientId: 'a77aaff4-a8b2-499a-9b71-fe8ae575d70d' })
-  });
+      // 3. Inicializamos el cliente usando tu Client ID real de tu proyecto
+      const wixClient = createClient({
+        modules: { services: bookings.services },
+        auth: OAuthStrategy({ clientId: 'a77aaff4-a8b2-499a-9b71-fe8ae575d70d' })
+      });
 
-  async function displayServices() {
-    try {
-      const response = await wixClient.services.queryServices().find();
-      const listContainer = document.getElementById('wix-services-list');
-      
-      if (!response.items || response.items.length === 0) {
-        listContainer.innerHTML = "<p style='text-align:center;'>No se encontraron servicios en tu panel de control de Wix.</p>";
-        return;
+      async function displayServices() {
+        try {
+          // 4. Hacemos la consulta a tus servicios de Wix Bookings
+          const response = await wixClient.services.queryServices().find();
+          const listContainer = document.getElementById('wix-services-list');
+          
+          if (!response.items || response.items.length === 0) {
+            listContainer.innerHTML = "<p style='text-align:center;'>No se encontraron servicios en tu panel de control de Wix.</p>";
+            return;
+          }
+
+          // 5. Inyectamos los servicios en tu diseño HTML
+          listContainer.innerHTML = response.items.map(service => `
+            <div class="service-card">
+              <h3 class="service-title">${service.name}</h3>
+              <p class="service-desc">${service.description || 'No hay descripción disponible para este servicio.'}</p>
+              <button class="book-btn">Reservar Cita</button>
+            </div>
+          `).join('');
+        } catch (err) {
+          console.error("Error al conectar con Wix:", err);
+          document.getElementById('wix-services-list').innerHTML = "<p style='color:red; text-align:center;'>Error al conectar con el backend de Wix. Revisa la consola.</p>";
+        }
       }
 
-      listContainer.innerHTML = response.items.map(service => `
-        <div class="service-card">
-          <h3 class="service-title">${service.name}</h3>
-          <p class="service-desc">${service.description || 'No hay descripción disponible para este servicio.'}</p>
-          <button class="book-btn">Reservar Cita</button>
-        </div>
-      `).join('');
-    } catch (err) {
-      console.error("Error al conectar con Wix:", err);
-      document.getElementById('wix-services-list').innerHTML = "<p style='color:red; text-align:center;'>Error al conectar con el backend de Wix. Revisa la consola.</p>";
-    }
-  }
-
-  // Ejecutar la función cuando cargue la página
-  window.onload = displayServices;
-</script>
-
+      // Ejecutar cuando la página esté completamente cargada
+      window.onload = displayServices;
     </script>
 </body>
 </html>
