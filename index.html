@@ -20,22 +20,20 @@
     <h1>Our Bookable Services</h1>
     <div id="wix-services-list">Loading services from your Wix backend...</div>
 
-    <!-- 1. Cargamos el bundle oficial de la API de Wix para navegadores de forma limpia -->
-    <script src="https://unpkg.com"></script>
+    <!-- Usamos scripts de módulos nativos integrados en un bundle limpio -->
+    <script type="module">
+      import { createClient, OAuthStrategy } from 'https://esm.sh';
+      import { services } from 'https://esm.sh';
 
-    <script>
-      // 2. Extraemos las herramientas necesarias directamente del objeto global 'wixApi'
-      const { createClient, OAuthStrategy, bookings } = window.wixApi;
-
-      // 3. Inicializamos el cliente usando tu Client ID real de tu proyecto
+      // Inicializamos el cliente usando tu Client ID real de tu proyecto
       const wixClient = createClient({
-        modules: { services: bookings.services },
+        modules: { services },
         auth: OAuthStrategy({ clientId: 'a77aaff4-a8b2-499a-9b71-fe8ae575d70d' })
       });
 
       async function displayServices() {
         try {
-          // 4. Hacemos la consulta a tus servicios de Wix Bookings
+          // Hacemos la consulta a tus servicios de Wix Bookings
           const response = await wixClient.services.queryServices().find();
           const listContainer = document.getElementById('wix-services-list');
           
@@ -44,7 +42,7 @@
             return;
           }
 
-          // 5. Inyectamos los servicios en tu diseño HTML
+          // Inyectamos los servicios en tu diseño HTML
           listContainer.innerHTML = response.items.map(service => `
             <div class="service-card">
               <h3 class="service-title">${service.name}</h3>
@@ -58,8 +56,8 @@
         }
       }
 
-      // Ejecutar cuando la página esté completamente cargada
-      window.onload = displayServices;
+      // Ejecutar la función cuando el DOM esté listo
+      document.addEventListener('DOMContentLoaded', displayServices);
     </script>
 </body>
 </html>
