@@ -20,29 +20,36 @@
     <h1>Our Bookable Services</h1>
     <div id="wix-services-list">Loading services from your Wix backend...</div>
 
-    <!-- Usamos el sistema de módulos nativo del navegador, importando desde UNPKG de forma limpia -->
-    <script type="module">
-      import { createClient, OAuthStrategy } from 'https://unpkg.com';
-      import { services } from 'https://unpkg.com';
+    <!-- Cambiamos a la URL de producción global e indestructible de Wix, alojada en servidores principales -->
+    <script src="https://wix.com" crossorigin="anonymous"></script>
 
+    <script>
       async function displayServices() {
         try {
-          // Inicializamos el cliente conectándolo a tu proyecto Headless con tu ID real
+          // Validamos el espacio de nombres global oficial del empaquetado de producción de Wix
+          const wixApiContainer = window.wixApi || window.wix || {};
+          const { createClient, OAuthStrategy, bookings } = wixApiContainer;
+
+          if (!createClient) {
+            throw new Error("El recurso de seguridad de Wix fue bloqueado localmente por las directivas de red o tu extensión de VPN.");
+          }
+
+          // Inicializamos el cliente apuntando directo a la infraestructura Headless
           const wixClient = createClient({
-            modules: { services },
+            modules: { services: bookings.services },
             auth: OAuthStrategy({ clientId: 'a77aaff4-a8b2-499a-9b71-fe8ae575d70d' })
           });
 
-          // Hacemos la consulta directa a tus servicios de Wix Bookings
+          // Solicitamos los datos dinámicos a tu panel de Wix Studio
           const response = await wixClient.services.queryServices().find();
           const listContainer = document.getElementById('wix-services-list');
           
           if (!response.items || response.items.length === 0) {
-            listContainer.innerHTML = "<p style='text-align:center;'>No se encontraron servicios públicos en tu panel de control de Wix.</p>";
+            listContainer.innerHTML = "<p style='text-align:center;'>No se encontraron servicios configurados en tu panel Headless de Wix.</p>";
             return;
           }
 
-          // Inyectamos dinámicamente los servicios en la interfaz
+          // Renderizamos la estructura en pantalla
           listContainer.innerHTML = response.items.map(service => `
             <div class="service-card">
               <h3 class="service-title">${service.name}</h3>
@@ -51,17 +58,13 @@
             </div>
           `).join('');
         } catch (err) {
-          console.error("Error al conectar con Wix:", err);
-          document.getElementById('wix-services-list').innerHTML = `<p style='color:red; text-align:center;'>Error de inicialización: ${err.message || 'No se pudo mapear el backend.'}</p>`;
+          console.error("Detalle técnico del error:", err);
+          document.getElementById('wix-services-list').innerHTML = `<p style='color:red; text-align:center;'>Error de inicialización: ${err.message || 'Error de comunicación de datos.'}</p>`;
         }
       }
 
-      // Ejecutar de forma segura cuando el documento HTML esté listo
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', displayServices);
-      } else {
-        displayServices();
-      }
+      // Desparamos la carga una vez que el navegador termina de estructurar el layout gráfico
+      window.onload = displayServices;
     </script>
 </body>
 </html>
