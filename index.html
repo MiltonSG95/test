@@ -19,20 +19,20 @@
 
     <h1>Our Bookable Services</h1>
     <div id="wix-services-list">Loading services from your Wix backend...</div>
-
-    <!-- Cargamos los scripts unificados utilizando UNPKG en formato UMD pre-empaquetado -->
+    <!-- Mantenemos los scripts de UNPKG que funcionaron perfectamente sin bloquearse -->
     <script src="https://unpkg.com"></script>
     <script src="https://unpkg.com"></script>
 
     <script>
       async function displayServices() {
         try {
-          // Extraemos los módulos una vez cargados en las variables globales seguras del navegador
-          const { createClient, OAuthStrategy } = window.wixSdk;
-          const { services } = window.wixBookings;
+          // Corrección de los objetos globales nativos generados por los bundles UMD de Wix
+          const { createClient, OAuthStrategy } = window.wix || window.wixSdk || {};
+          const { services } = window.bookings || window.wixBookings || {};
 
           if (!createClient) {
-            throw new Error("La librería de Wix no pudo inicializarse correctamente.");
+            console.log("Estructura detectada en window:", window.wix, window.bookings);
+            throw new Error("No se encontró el inicializador de la librería en el navegador.");
           }
 
           // Inicializamos el cliente conectándolo a tu proyecto Headless con tu ID real
@@ -60,12 +60,13 @@
           `).join('');
         } catch (err) {
           console.error("Error al conectar con Wix:", err);
-          document.getElementById('wix-services-list').innerHTML = `<p style='color:red; text-align:center;'>Error de conexión: ${err.message || 'No se pudo mapear el backend.'}</p>`;
+          document.getElementById('wix-services-list').innerHTML = `<p style='color:red; text-align:center;'>Error de inicialización: ${err.message || 'No se pudo mapear el backend.'}</p>`;
         }
       }
 
       // Ejecutar de forma segura cuando todo el documento esté estructurado
       window.onload = displayServices;
     </script>
+
 </body>
 </html>
