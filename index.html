@@ -19,22 +19,14 @@
 
     <h1>Our Bookable Services</h1>
     <div id="wix-services-list">Loading services from your Wix backend...</div>
-    <!-- Mantenemos los scripts de UNPKG que funcionaron perfectamente sin bloquearse -->
-    <script src="https://unpkg.com"></script>
-    <script src="https://unpkg.com"></script>
 
-    <script>
+    <!-- Usamos el sistema de módulos nativo del navegador, importando desde UNPKG de forma limpia -->
+    <script type="module">
+      import { createClient, OAuthStrategy } from 'https://unpkg.com';
+      import { services } from 'https://unpkg.com';
+
       async function displayServices() {
         try {
-          // Corrección de los objetos globales nativos generados por los bundles UMD de Wix
-          const { createClient, OAuthStrategy } = window.wix || window.wixSdk || {};
-          const { services } = window.bookings || window.wixBookings || {};
-
-          if (!createClient) {
-            console.log("Estructura detectada en window:", window.wix, window.bookings);
-            throw new Error("No se encontró el inicializador de la librería en el navegador.");
-          }
-
           // Inicializamos el cliente conectándolo a tu proyecto Headless con tu ID real
           const wixClient = createClient({
             modules: { services },
@@ -64,9 +56,12 @@
         }
       }
 
-      // Ejecutar de forma segura cuando todo el documento esté estructurado
-      window.onload = displayServices;
+      // Ejecutar de forma segura cuando el documento HTML esté listo
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', displayServices);
+      } else {
+        displayServices();
+      }
     </script>
-
 </body>
 </html>
